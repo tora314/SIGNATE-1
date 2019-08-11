@@ -1,3 +1,6 @@
 The code of  preprocess Datasets 
 
+/preprocess : Convert the csv data to numpy array and normarize daata mean 0 dispersion 1
+
+/PCA_data  : Reduce the dimention of the data by principal compornent anarysis.
 
