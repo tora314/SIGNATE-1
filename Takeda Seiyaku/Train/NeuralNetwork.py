@@ -15,6 +15,10 @@ class NN:
         self.step=np.zeros(100)
         self.sess=tf.InteractiveSession()
 
+    # -----------------------
+    #   Activate Functions
+    # ----------------------
+
     def relu(self,x,w,b,drop=0.5,name=None):
         """
         :param x: type tensor 入力のtensor
@@ -134,6 +138,9 @@ class NN:
         self.step[i] += 1
         return tanh
 
+    #----------------------
+    #   Layers
+    #----------------------
     def conv2d(self,x,filter,stride,padding="SAME",drop=1,name=None):
         """
         :param x: type tensor 入力のtensor
@@ -168,6 +175,22 @@ class NN:
         self.step[i] += 1
         return conv
 
+    def matmul(self, x, w, b, drop=0.5, name=None):
+        """
+        :param x: type tensor 入力のtensor
+        :param w: type tensor 重みのtensor
+        :param b: type tensor biasのtensor
+        :return: type tensor  relu　name scope の設定
+        """
+        i = 10
+        name = "matmul" + str(self.step[i])
+        with tf.name_scope(name):
+            matmul = tf.add(tf.matmul(tf.nn.dropout(x, keep_prob=drop), w), b, name=name)
+            self.activaes.append(matmul)
+        self.step[i] += 1
+        return matmul
+
+
     def maxpool(self,x,ksize,stride,padding="SAME",drop=1,name=None):
         """
         :param x: type tensor 入力のtensor
@@ -185,6 +208,26 @@ class NN:
         self.step[i] += 1
         return pool
 
+    def batch_normalizations(self,x,name=None,mean=0,var=1,offset=0,scale=1,var_epsoron=1e-8):
+        """
+                :param x: type tensor 入力のtensor
+                :param w: type tensor 重みのtensor
+                :param b: type tensor biasのtensor
+                :return: type tensor maxpool  name scope の設定
+                """
+        i = 22
+        if name == None:
+            name = "batch_normalization" + str(self.step[i])
+
+        with tf.name_scope(name):
+            batch_normalization = tf.nn.batch_normalization(x,mean=mean,variance=var,offset=offset,scale=scale,variance_epsilon=var_epsoron)
+            self.activaes.append(batch_normalization)
+        self.step[i] += 1
+        return batch_normalization
+
+    # -----------------------
+    #   Define the parameters
+    # ----------------------
 
     def weight(self,dim,min=0,max=1,norm=False,name=None):
         """
@@ -225,6 +268,22 @@ class NN:
             self.biases.append(b)
         self.step[i] += 1
         return b
+
+    def placeholder(self, name):
+        """
+        :param name: type str　name scope
+        :return: type tensor placeholser
+        :todo : placeholserのname scope を設定してplaceholderを返す
+        """
+
+        with tf.name_scope(name):
+            x = tf.placeholder(tf.float32, name=name)
+            # self.x.append(x)
+
+        return x
+    # -----------------------
+    #   Loss Functions
+    # ----------------------
 
     def mape(self,x,label):
         """
@@ -271,62 +330,6 @@ class NN:
         self.step[i] += 1
         return loss
 
-
-
-    def adam(self,loss,rate=1e-3):
-        """
-        :param loss:type tensor loss
-        :return: type tensor Adam Optimizer
-        """
-        i = 9
-        name = "adam" + str(self.step[i])
-        with tf.name_scope(name):
-            opt=tf.train.AdamOptimizer(rate,name=name).minimize(loss)
-            self.opts.append(opt)
-        self.step[i] += 1
-        return opt
-
-    def sgd(self,loss,rate=1e-2):
-        """
-        :param loss:type tensor loss
-        :return: type tensor Adam Optimizer
-        """
-        i = 17
-        name = "sgd" + str(self.step[i])
-        with tf.name_scope(name):
-            opt=tf.train.GradientDescentOptimizer(rate,name=name).minimize(loss)
-            self.opts.append(opt)
-        self.step[i] += 1
-        return opt
-
-
-    def placeholder(self,name):
-        """
-        :param name: type str　name scope
-        :return: type tensor placeholser
-        :todo : placeholserのname scope を設定してplaceholderを返す
-        """
-
-        with tf.name_scope(name):
-            x=tf.placeholder(tf.float32,name=name)
-            #self.x.append(x)
-
-        return x
-
-    def matmul(self,x,w,b,drop=0.5,name=None):
-        """
-        :param x: type tensor 入力のtensor
-        :param w: type tensor 重みのtensor
-        :param b: type tensor biasのtensor
-        :return: type tensor  relu　name scope の設定
-        """
-        i = 10
-        name = "matmul" + str(self.step[i])
-        with tf.name_scope(name):
-            matmul= tf.add(tf.matmul(tf.nn.dropout(x,keep_prob=drop), w) , b,name=name)
-            self.activaes.append(matmul)
-        self.step[i] += 1
-        return matmul
 
     def sse(self,x,label):
         """
@@ -415,6 +418,40 @@ class NN:
         eln=lamda*tf.add(alpha*w1,(1-alpha)*w2)
         print(w1)
         return eln
+
+    # -----------------------
+    #   Optimizer
+    # ----------------------
+
+    def adam(self,loss,rate=1e-3):
+        """
+        :param loss:type tensor loss
+        :return: type tensor Adam Optimizer
+        """
+        i = 9
+        name = "adam" + str(self.step[i])
+        with tf.name_scope(name):
+            opt=tf.train.AdamOptimizer(rate,name=name).minimize(loss)
+            self.opts.append(opt)
+        self.step[i] += 1
+        return opt
+
+    def sgd(self,loss,rate=1e-2):
+        """
+        :param loss:type tensor loss
+        :return: type tensor Adam Optimizer
+        """
+        i = 17
+        name = "sgd" + str(self.step[i])
+        with tf.name_scope(name):
+            opt=tf.train.GradientDescentOptimizer(rate,name=name).minimize(loss)
+            self.opts.append(opt)
+        self.step[i] += 1
+        return opt
+
+    # -----------------------
+    #   Something
+    # ----------------------
 
     def tensor_stack(self,packs,axis=0):
         """
@@ -520,9 +557,3 @@ class Model(NN):
         """
         self.saver = tf.train.Saver()
         self.saver.save(self.sess,path)
-
-
-
-
-
-
